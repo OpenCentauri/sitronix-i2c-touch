@@ -23,7 +23,10 @@ DTS analysis, and driver selection notes.
 │           └── sitronix_ts_i2c.c             # driver implementation (our driver)
 └── refs/
     ├── sitronix_i2c_touch.c                  # Sitronix vendor reference driver (GPL-2.0)
-    └── sitronix_i2c_touch.h                  # Sitronix vendor reference header (GPL-2.0)
+    ├── sitronix_i2c_touch.h                  # Sitronix vendor reference header (GPL-2.0)
+    └── cc2-stock-kernel-decomp/
+        ├── README.md                         # why the stock CC2 decomp matters
+        └── sitronix_stock_decomp.c          # pseudo-C export of stock CC2 Sitronix driver
 ```
 
 ### Reference driver (`refs/`)
@@ -42,6 +45,19 @@ an unmodified reference for:
 **Do not build `refs/` directly** — it targets older kernels (~3.x) and will
 not compile cleanly against 6.18 without the adaptations already applied in
 `drivers/input/touchscreen/sitronix_ts_i2c.c`.
+
+### Stock CC2 kernel decomp (`refs/cc2-stock-kernel-decomp/`)
+
+[`refs/cc2-stock-kernel-decomp/sitronix_stock_decomp.c`](refs/cc2-stock-kernel-decomp/sitronix_stock_decomp.c)
+is a pseudo-C export of the stock CC2 kernel Sitronix driver copied from the
+local `cosmos/` analysis workspace.
+
+Useful bits it confirms:
+
+- register I/O is **16-bit addressed**
+- stock status/device-info reads use `0x0001`, `0x0005`, `0x0009`, `0x000c`, `0x00f4`
+- live report reads start at `0x0010`
+- touch contacts decode as **7-byte records** with valid bit `0x80`
 
 ---
 
