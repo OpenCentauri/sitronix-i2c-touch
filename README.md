@@ -22,17 +22,17 @@ DTS analysis, and driver selection notes.
 │           ├── sitronix_ts_i2c.h             # register map, structs (our driver)
 │           └── sitronix_ts_i2c.c             # driver implementation (our driver)
 └── refs/
-    ├── sitronix_i2c_touch.c                  # Sitronix vendor reference driver (GPL-2.0)
-    ├── sitronix_i2c_touch.h                  # Sitronix vendor reference header (GPL-2.0)
-    └── cc2-stock-kernel-decomp/
-        ├── README.md                         # why the stock CC2 decomp matters
-        └── sitronix_stock_decomp.c          # pseudo-C export of stock CC2 Sitronix driver
+    ├── README.md                              # refs map / organization
+    ├── vendor-driver/                         # original Sitronix vendor .c/.h
+    ├── st77922-touch-driver/                 # external ST77922 reference
+    ├── cc2-stock-kernel-decomp/              # pseudo-C export from stock CC2 kernel
+    └── cc2-stock-analysis/                   # stock captures, disasm, scripts
 ```
 
-### Reference driver (`refs/`)
+### Reference driver (`refs/vendor-driver/`)
 
-[`refs/sitronix_i2c_touch.c`](refs/sitronix_i2c_touch.c) and
-[`refs/sitronix_i2c_touch.h`](refs/sitronix_i2c_touch.h) are the original
+[`refs/vendor-driver/sitronix_i2c_touch.c`](refs/vendor-driver/sitronix_i2c_touch.c) and
+[`refs/vendor-driver/sitronix_i2c_touch.h`](refs/vendor-driver/sitronix_i2c_touch.h) are the original
 Sitronix vendor driver (© 2011 Sitronix Technology Co., Ltd., GPL-2.0),
 sourced from the CriticalLink MitySOM support site. They are kept here as
 an unmodified reference for:
@@ -58,6 +58,15 @@ Useful bits it confirms:
 - stock status/device-info reads use `0x0001`, `0x0005`, `0x0009`, `0x000c`, `0x00f4`
 - live report reads start at `0x0010`
 - touch contacts decode as **7-byte records** with valid bit `0x80`
+
+### Stock CC2 captures / disassembly (`refs/cc2-stock-analysis/`)
+
+[`refs/cc2-stock-analysis/README.md`](refs/cc2-stock-analysis/README.md) indexes the
+organized stock-device material:
+
+- `disasm/` — disassembly, kallsyms extracts, DT node extracts, summary notes
+- `runtime/` — GPIO/sysfs/input/i2c/irq/pinctrl captures from stock CC2
+- `scripts/` — helper capture/poll scripts used during investigation
 
 ---
 

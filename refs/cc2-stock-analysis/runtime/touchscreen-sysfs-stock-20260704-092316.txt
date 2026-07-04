@@ -1,0 +1,5 @@
+=== /sys/bus/i2c/devices/2-0055 ===
+=== /sys/bus/i2c/drivers/sitronix_ts_i2c ===
+/sys/bus/i2c/drivers/sitronix_ts_i2c/bind
+/sys/bus/i2c/drivers/sitronix_ts_i2c/unbind
+/sys/bus/i2c/drivers/sitronix_ts_i2c/uevent

@@ -1,0 +1,31 @@
+=== /sys/class/gpio/gpio116 ===
+1
+out
+none
+0
+=== /sys/class/gpio/gpio118 ===
+0
+in
+none
+0
+=== /sys/class/gpio/gpio145 ===
+1
+out
+none
+0
+=== /sys/class/gpio/gpio201 ===
+0
+in
+none
+0
+=== /sys/class/gpio/gpio203 ===
+1
+out
+none
+0
+=== /sys/class/gpio/gpio43 ===
+1
+out
+none
+0
+=== /sys/class/gpio/gpiochip0 ===

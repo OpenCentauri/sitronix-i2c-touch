@@ -1,0 +1,3 @@
+/sys/bus/i2c/drivers/sitronix_ts_i2c/bind
+/sys/bus/i2c/drivers/sitronix_ts_i2c/unbind
+/sys/bus/i2c/drivers/sitronix_ts_i2c/uevent

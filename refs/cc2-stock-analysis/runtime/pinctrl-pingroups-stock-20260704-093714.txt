@@ -1,0 +1,265 @@
+registered pin groups:
+group: PB0
+pin 32 (PB0)
+
+group: PB1
+pin 33 (PB1)
+
+group: PB2
+pin 34 (PB2)
+
+group: PB3
+pin 35 (PB3)
+
+group: PB4
+pin 36 (PB4)
+
+group: PB5
+pin 37 (PB5)
+
+group: PB6
+pin 38 (PB6)
+
+group: PB7
+pin 39 (PB7)
+
+group: PB8
+pin 40 (PB8)
+
+group: PB9
+pin 41 (PB9)
+
+group: PB10
+pin 42 (PB10)
+
+group: PB11
+pin 43 (PB11)
+
+group: PB12
+pin 44 (PB12)
+
+group: PC0
+pin 64 (PC0)
+
+group: PC1
+pin 65 (PC1)
+
+group: PC2
+pin 66 (PC2)
+
+group: PC3
+pin 67 (PC3)
+
+group: PC4
+pin 68 (PC4)
+
+group: PC5
+pin 69 (PC5)
+
+group: PC6
+pin 70 (PC6)
+
+group: PC7
+pin 71 (PC7)
+
+group: PD0
+pin 96 (PD0)
+
+group: PD1
+pin 97 (PD1)
+
+group: PD2
+pin 98 (PD2)
+
+group: PD3
+pin 99 (PD3)
+
+group: PD4
+pin 100 (PD4)
+
+group: PD5
+pin 101 (PD5)
+
+group: PD6
+pin 102 (PD6)
+
+group: PD7
+pin 103 (PD7)
+
+group: PD8
+pin 104 (PD8)
+
+group: PD9
+pin 105 (PD9)
+
+group: PD10
+pin 106 (PD10)
+
+group: PD11
+pin 107 (PD11)
+
+group: PD12
+pin 108 (PD12)
+
+group: PD13
+pin 109 (PD13)
+
+group: PD14
+pin 110 (PD14)
+
+group: PD15
+pin 111 (PD15)
+
+group: PD16
+pin 112 (PD16)
+
+group: PD17
+pin 113 (PD17)
+
+group: PD18
+pin 114 (PD18)
+
+group: PD19
+pin 115 (PD19)
+
+group: PD20
+pin 116 (PD20)
+
+group: PD21
+pin 117 (PD21)
+
+group: PD22
+pin 118 (PD22)
+
+group: PE0
+pin 128 (PE0)
+
+group: PE1
+pin 129 (PE1)
+
+group: PE2
+pin 130 (PE2)
+
+group: PE3
+pin 131 (PE3)
+
+group: PE4
+pin 132 (PE4)
+
+group: PE5
+pin 133 (PE5)
+
+group: PE6
+pin 134 (PE6)
+
+group: PE7
+pin 135 (PE7)
+
+group: PE8
+pin 136 (PE8)
+
+group: PE9
+pin 137 (PE9)
+
+group: PE10
+pin 138 (PE10)
+
+group: PE11
+pin 139 (PE11)
+
+group: PE12
+pin 140 (PE12)
+
+group: PE13
+pin 141 (PE13)
+
+group: PE14
+pin 142 (PE14)
+
+group: PE15
+pin 143 (PE15)
+
+group: PE16
+pin 144 (PE16)
+
+group: PE17
+pin 145 (PE17)
+
+group: PF0
+pin 160 (PF0)
+
+group: PF1
+pin 161 (PF1)
+
+group: PF2
+pin 162 (PF2)
+
+group: PF3
+pin 163 (PF3)
+
+group: PF4
+pin 164 (PF4)
+
+group: PF5
+pin 165 (PF5)
+
+group: PF6
+pin 166 (PF6)
+
+group: PG0
+pin 192 (PG0)
+
+group: PG1
+pin 193 (PG1)
+
+group: PG2
+pin 194 (PG2)
+
+group: PG3
+pin 195 (PG3)
+
+group: PG4
+pin 196 (PG4)
+
+group: PG5
+pin 197 (PG5)
+
+group: PG6
+pin 198 (PG6)
+
+group: PG7
+pin 199 (PG7)
+
+group: PG8
+pin 200 (PG8)
+
+group: PG9
+pin 201 (PG9)
+
+group: PG10
+pin 202 (PG10)
+
+group: PG11
+pin 203 (PG11)
+
+group: PG12
+pin 204 (PG12)
+
+group: PG13
+pin 205 (PG13)
+
+group: PG14
+pin 206 (PG14)
+
+group: PG15
+pin 207 (PG15)
+
+group: PG16
+pin 208 (PG16)
+
+group: PG17
+pin 209 (PG17)
+
+group: PG18
+pin 210 (PG18)
+
