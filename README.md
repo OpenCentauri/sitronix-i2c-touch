@@ -15,13 +15,33 @@ DTS analysis, and driver selection notes.
 ├── Makefile                                  # out-of-tree Kbuild
 ├── README.md                                 # this file
 ├── notes-sitronix-ts55.md                    # design/research notes
-└── drivers/
-    └── input/
-        └── touchscreen/
-            ├── Kconfig                       # Kconfig fragment
-            ├── sitronix_ts_i2c.h             # register map, structs
-            └── sitronix_ts_i2c.c             # driver implementation
+├── drivers/
+│   └── input/
+│       └── touchscreen/
+│           ├── Kconfig                       # Kconfig fragment
+│           ├── sitronix_ts_i2c.h             # register map, structs (our driver)
+│           └── sitronix_ts_i2c.c             # driver implementation (our driver)
+└── refs/
+    ├── sitronix_i2c_touch.c                  # Sitronix vendor reference driver (GPL-2.0)
+    └── sitronix_i2c_touch.h                  # Sitronix vendor reference header (GPL-2.0)
 ```
+
+### Reference driver (`refs/`)
+
+[`refs/sitronix_i2c_touch.c`](refs/sitronix_i2c_touch.c) and
+[`refs/sitronix_i2c_touch.h`](refs/sitronix_i2c_touch.h) are the original
+Sitronix vendor driver (© 2011 Sitronix Technology Co., Ltd., GPL-2.0),
+sourced from the CriticalLink MitySOM support site. They are kept here as
+an unmodified reference for:
+
+- Register map validation
+- Protocol A/B packet layout reference
+- Feature parity comparison (monitor thread, FW upgrade, sysfs, AA keys)
+- Basis for any further porting work
+
+**Do not build `refs/` directly** — it targets older kernels (~3.x) and will
+not compile cleanly against 6.18 without the adaptations already applied in
+`drivers/input/touchscreen/sitronix_ts_i2c.c`.
 
 ---
 
@@ -146,7 +166,8 @@ bytes 2+  : per-touch, pixel_length bytes each
 - [ ] Add `touchscreen-inverted-x`, `touchscreen-inverted-y` DTS support
       if panel orientation needs correction.
 - [ ] Add firmware upgrade path (`/dev/sitronixDev` char device) if needed
-      for panel reflashing.
+      for panel reflashing — see `refs/sitronix_i2c_touch.c` for the
+      full ISP/ioctl implementation to port.
 - [ ] Consider upstreaming to `drivers/input/touchscreen/` once validated,
       using `sitronix,st1232`/`st1633` compatible strings for mainline.
 
