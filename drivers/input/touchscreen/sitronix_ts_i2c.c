@@ -29,46 +29,70 @@ MODULE_LICENSE("GPL v2");
 /* Low-level I2C helpers                                                     */
 /* ======================================================================== */
 
-static int stx_i2c_read(struct i2c_client *client, u8 reg, u8 *buf, int len)
+static int stx_i2c_read(struct i2c_client *client, u16 reg, u8 *buf, int len)
 {
+	u8 addr[2] = { reg >> 8, reg & 0xff };
+	struct i2c_msg msgs[] = {
+		{
+			.addr = client->addr,
+			.flags = 0,
+			.len = sizeof(addr),
+			.buf = addr,
+		},
+		{
+			.addr = client->addr,
+			.flags = I2C_M_RD,
+			.len = len,
+			.buf = buf,
+		},
+	};
 	int ret;
 
-	ret = i2c_master_send(client, &reg, 1);
-	if (ret < 0) {
-		dev_err(&client->dev, "i2c write reg 0x%02x failed: %d\n", reg, ret);
+	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+	if (ret != ARRAY_SIZE(msgs)) {
+		if (ret >= 0)
+			ret = -EIO;
+		dev_err(&client->dev, "i2c read reg 0x%04x failed: %d\n", reg, ret);
 		return ret;
 	}
-	ret = i2c_master_recv(client, buf, len);
-	if (ret < 0) {
-		dev_err(&client->dev, "i2c read reg 0x%02x failed: %d\n", reg, ret);
-		return ret;
-	}
-	return 0;
-}
 
-static int stx_i2c_write(struct i2c_client *client, u8 *buf, int len)
-{
-	int ret = i2c_master_send(client, buf, len);
-	if (ret < 0)
-		dev_err(&client->dev, "i2c write failed: %d\n", ret);
-	return (ret < 0) ? ret : 0;
+	return 0;
 }
 
 /* ======================================================================== */
 /* IC initialisation: read chip capabilities                                 */
 /* ======================================================================== */
 
+static int stx_wait_ready(struct sitronix_ts *ts)
+{
+	u8 status;
+	int ret;
+	int retries = 100;
+
+	do {
+		ret = stx_i2c_read(ts->client, STATUS_REG, &status, 1);
+		if (ret < 0)
+			return ret;
+		if (!(status & STX_STATUS_READY_MASK))
+			return 0;
+		msleep(1);
+	} while (--retries > 0);
+
+	dev_warn(&ts->client->dev, "controller stayed busy (status=0x%02x)\n", status);
+	return -ETIMEDOUT;
+}
+
 static int stx_get_resolution(struct sitronix_ts *ts)
 {
-	u8 buf[3];
+	u8 buf[4];
 	int ret;
 
-	ret = stx_i2c_read(ts->client, XY_RESOLUTION_HIGH, buf, 3);
+	ret = stx_i2c_read(ts->client, X_RESOLUTION_LOW, buf, sizeof(buf));
 	if (ret < 0)
 		return ret;
 
-	ts->resolution_x = ((buf[0] & (X_RES_H_BMSK << X_RES_H_SHFT)) << 4) | buf[1];
-	ts->resolution_y = ((buf[0] &  Y_RES_H_BMSK) << 8) | buf[2];
+	ts->resolution_x = ((buf[0] & STX_COORD_H_MASK) << 8) | buf[1];
+	ts->resolution_y = ((buf[2] & STX_COORD_H_MASK) << 8) | buf[3];
 
 	dev_info(&ts->client->dev, "resolution: %d x %d\n",
 		 ts->resolution_x, ts->resolution_y);
@@ -77,60 +101,38 @@ static int stx_get_resolution(struct sitronix_ts *ts)
 
 static int stx_get_chip_id(struct sitronix_ts *ts)
 {
-	u8 buf[3];
+	u8 chip_id;
 	int ret;
 
-	ret = stx_i2c_read(ts->client, CHIP_ID, buf, 3);
+	ret = stx_i2c_read(ts->client, CHIP_ID, &chip_id, 1);
 	if (ret < 0)
 		return ret;
 
-	if (buf[0] == 0) {
-		if (buf[1] + buf[2] > 32)
-			ts->chip_id = 2;
-		else
-			ts->chip_id = 0;
-	} else {
-		ts->chip_id = buf[0];
-	}
-	ts->Num_X = buf[1];
-	ts->Num_Y = buf[2];
+	ts->chip_id = chip_id;
+	ts->Num_X = 0;
+	ts->Num_Y = 0;
 
-	dev_info(&ts->client->dev, "chip_id=%d Num_X=%d Num_Y=%d\n",
-		 ts->chip_id, ts->Num_X, ts->Num_Y);
+	dev_info(&ts->client->dev, "chip_id=%d\n", ts->chip_id);
 	return 0;
 }
 
 static int stx_get_protocol_type(struct sitronix_ts *ts)
 {
-	u8 buf[1];
-	int ret;
-
-	if (ts->chip_id <= 3) {
-		ret = stx_i2c_read(ts->client, I2C_PROTOCOL, buf, 1);
-		if (ret < 0)
-			return ret;
-
-		ts->protocol_type = buf[0] & I2C_PROTOCOL_BMSK;
-	} else {
-		ts->protocol_type = SITRONIX_A_TYPE;
-	}
-
-	dev_info(&ts->client->dev, "protocol_type=%d\n", ts->protocol_type);
+	ts->protocol_type = SITRONIX_STOCK_CC2_TYPE;
+	dev_info(&ts->client->dev, "protocol_type=stock-cc2\n");
 	return 0;
 }
 
 static int stx_get_max_touches(struct sitronix_ts *ts)
 {
-	u8 buf[1];
+	u8 max_touches;
 	int ret;
 
-	ret = stx_i2c_read(ts->client, MAX_NUM_TOUCHES, buf, 1);
+	ret = stx_i2c_read(ts->client, MAX_NUM_TOUCHES, &max_touches, 1);
 	if (ret < 0)
 		return ret;
 
-	ts->max_touches = buf[0];
-	if (ts->max_touches > SITRONIX_MAX_TOUCHES)
-		ts->max_touches = SITRONIX_MAX_TOUCHES;
+	ts->max_touches = min_t(u8, max_touches, SITRONIX_MAX_TOUCHES);
 
 	dev_info(&ts->client->dev, "max_touches=%d\n", ts->max_touches);
 	return 0;
@@ -139,6 +141,10 @@ static int stx_get_max_touches(struct sitronix_ts *ts)
 static int stx_init_ic(struct sitronix_ts *ts)
 {
 	int ret;
+
+	ret = stx_wait_ready(ts);
+	if (ret < 0)
+		return ret;
 
 	ret = stx_get_chip_id(ts);
 	if (ret < 0)
@@ -156,19 +162,7 @@ static int stx_init_ic(struct sitronix_ts *ts)
 	if (ret < 0)
 		return ret;
 
-	/* Derive bytes per touch from protocol type */
-	switch (ts->protocol_type) {
-	case SITRONIX_B_TYPE:
-		ts->pixel_length = PIXEL_DATA_LENGTH_B;
-		ts->max_touches  = 2;
-		dev_info(&ts->client->dev, "B-type: max_touches clamped to 2\n");
-		break;
-	case SITRONIX_A_TYPE:
-	default:
-		ts->pixel_length = PIXEL_DATA_LENGTH_A;
-		break;
-	}
-
+	ts->pixel_length = STX_TOUCH_POINT_BYTES;
 	return 0;
 }
 
@@ -193,53 +187,9 @@ static void stx_hw_reset(struct sitronix_ts *ts)
 /* ======================================================================== */
 
 /*
- * Sensor keys: the KEYS_REG byte carries up to 3 capacitive buttons
- * mapped to BACK (bit0), HOME (bit1), MENU (bit2).
- */
-static const struct sitronix_sensor_key stx_keys[] = {
-	{ KEY_BACK },
-	{ KEY_HOME },
-	{ KEY_MENU },
-};
-#define STX_NUM_KEYS ARRAY_SIZE(stx_keys)
-
-static char stx_prev_key_status;
-
-static void stx_report_sensor_keys(struct input_dev *input, u8 cur)
-{
-	int i;
-
-	for (i = 0; i < STX_NUM_KEYS; i++) {
-		bool was = (stx_prev_key_status >> i) & 1;
-		bool is  = (cur >> i) & 1;
-
-		if (is && !was)
-			input_report_key(input, stx_keys[i].code, 1);
-		else if (!is && was)
-			input_report_key(input, stx_keys[i].code, 0);
-	}
-	stx_prev_key_status = cur;
-}
-
-/*
- * stx_report_touches - parse a raw report packet and push MT events.
- *
- * Packet layout starting at FINGERS register:
- *   byte  0  : [7:4] = don't care, [3:0] = finger count
- *   byte  1  : KEYS_REG  (capacitive sensor keys)
- *   bytes 2+ : per-touch data, pixel_length bytes each
- *
- * A-type per-touch (5 bytes):
- *   [0]: valid(7) x_h(6:4) y_h(2:0)
- *   [1]: x_l
- *   [2]: y_l
- *   [3]: z (pressure)
- *   [4]: area
- *
- * B-type per-touch (3 bytes):
- *   [0]: valid(7) x_h(6:4) y_h(2:0)
- *   [1]: x_l
- *   [2]: y_l
+ * Stock CC2 touch path:
+ *   - read update/status byte from 0x0010
+ *   - when bit 3 is set, read 7-byte contact records from 0x0014
  */
 static void stx_report_touches(struct sitronix_ts *ts)
 {
@@ -247,62 +197,44 @@ static void stx_report_touches(struct sitronix_ts *ts)
 	struct input_dev  *input  = ts->input;
 	int buf_len;
 	u8 *buf;
-	u8 fingers;
-	u8 key_status;
-	int i, slot;
+	u8 update;
+	int slot;
 	int ret;
 
-	/*
-	 * Read FINGERS + KEYS_REG + all touch data in one shot:
-	 *   2 header bytes + max_touches * pixel_length
-	 */
-	buf_len = 2 + ts->max_touches * ts->pixel_length;
+	ret = stx_i2c_read(client, TOUCH_INFO, &update, 1);
+	if (ret < 0)
+		return;
+
+	buf_len = ts->max_touches * ts->pixel_length;
 	buf = kzalloc(buf_len, GFP_KERNEL);
 	if (!buf)
 		return;
 
-	ret = stx_i2c_read(client, FINGERS, buf, buf_len);
-	if (ret < 0)
-		goto out;
+	if (update & STX_TOUCH_UPDATE_BIT) {
+		ret = stx_i2c_read(client, TOUCH_POINT0, buf, buf_len);
+		if (ret < 0)
+			goto out;
+	}
 
-	fingers    = buf[0] & FINGERS_BMSK;
-	key_status = buf[1];
-
-	if (fingers > ts->max_touches)
-		fingers = ts->max_touches;
-
-	/* Report all MT slots */
 	for (slot = 0; slot < ts->max_touches; slot++) {
-		const u8 *p = &buf[2 + slot * ts->pixel_length];
-		bool valid;
-		u16  x, y;
-
-		valid = (p[0] >> X_COORD_VALID_SHFT) & X_COORD_VALID_BMSK;
-		x = (u16)(((p[0] >> X_COORD_H_SHFT) & X_COORD_H_BMSK) << 8) | p[1];
-		y = (u16)((p[0] & Y_COORD_H_BMSK) << 8) | p[2];
+		const u8 *p = &buf[slot * ts->pixel_length];
+		bool valid = (update & STX_TOUCH_UPDATE_BIT) && (p[0] & STX_TOUCH_VALID_BIT);
+		u16 x = ((p[0] & STX_COORD_H_MASK) << 8) | p[1];
+		u16 y = ((p[2] & STX_COORD_H_MASK) << 8) | p[3];
 
 		input_mt_slot(input, slot);
-
-		if (valid && (slot < fingers)) {
+		if (valid) {
 			input_mt_report_slot_state(input, MT_TOOL_FINGER, true);
 			input_report_abs(input, ABS_MT_POSITION_X, x);
 			input_report_abs(input, ABS_MT_POSITION_Y, y);
-			if (ts->pixel_length >= PIXEL_DATA_LENGTH_A) {
-				input_report_abs(input, ABS_MT_PRESSURE,     p[3]);
-				input_report_abs(input, ABS_MT_TOUCH_MAJOR,  p[4]);
-			}
+			input_report_abs(input, ABS_MT_TOUCH_MAJOR, 1);
+			input_report_abs(input, ABS_MT_PRESSURE, 255);
 		} else {
 			input_mt_report_slot_state(input, MT_TOOL_FINGER, false);
 		}
 	}
 
 	input_mt_report_pointer_emulation(input, false);
-
-	/* Sensor keys */
-	for (i = 0; i < STX_NUM_KEYS; i++)
-		input_set_capability(input, EV_KEY, stx_keys[i].code);
-	stx_report_sensor_keys(input, key_status);
-
 	input_sync(input);
 
 out:
@@ -333,21 +265,10 @@ static int sitronix_ts_suspend(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct sitronix_ts *ts    = i2c_get_clientdata(client);
-	u8 buf[2];
-	int ret;
 
 	mutex_lock(&ts->lock);
 	ts->suspended = true;
 	disable_irq(client->irq);
-
-	/* set power-down bit in DEVICE_CONTROL_REG */
-	ret = stx_i2c_read(client, DEVICE_CONTROL_REG, &buf[1], 1);
-	if (ret == 0) {
-		buf[0] = DEVICE_CONTROL_REG;
-		buf[1] |= 0x02;
-		stx_i2c_write(client, buf, 2);
-	}
-
 	mutex_unlock(&ts->lock);
 	return 0;
 }
@@ -356,23 +277,11 @@ static int sitronix_ts_resume(struct device *dev)
 {
 	struct i2c_client *client = to_i2c_client(dev);
 	struct sitronix_ts *ts    = i2c_get_clientdata(client);
-	u8 buf[2];
-	int ret;
 
 	mutex_lock(&ts->lock);
-
-	/* clear power-down bit */
-	ret = stx_i2c_read(client, DEVICE_CONTROL_REG, &buf[1], 1);
-	if (ret == 0) {
-		buf[0] = DEVICE_CONTROL_REG;
-		buf[1] &= ~0x02;
-		stx_i2c_write(client, buf, 2);
-	}
-
 	stx_hw_reset(ts);
 	ts->suspended = false;
 	enable_irq(client->irq);
-
 	mutex_unlock(&ts->lock);
 	return 0;
 }
@@ -408,6 +317,8 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	/* ---- GPIO setup ---------------------------------------------------- */
 	ts->irq_gpio = of_get_named_gpio(dev->of_node, "irq-gpio", 0);
 	ts->rst_gpio = of_get_named_gpio(dev->of_node, "reset-gpio", 0);
+	if (!gpio_is_valid(ts->rst_gpio))
+		ts->rst_gpio = of_get_named_gpio(dev->of_node, "rst-gpio", 0);
 
 	if (gpio_is_valid(ts->rst_gpio)) {
 		ret = devm_gpio_request_one(dev, ts->rst_gpio,
