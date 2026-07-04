@@ -14,6 +14,8 @@
  * Register map, protocol types, and packet layouts are taken verbatim
  * from the Sitronix vendor reference driver (GPL-2.0).
  */
+#include "sitronix_ts_i2c.h"
+#include <linux/version.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/pm_runtime.h>
@@ -82,29 +84,19 @@ static int stx_get_chip_id(struct sitronix_ts *ts)
 	if (ret < 0)
 		return ret;
 
-	if (buf[0] == 0)
-		ts->chip_id = (buf[1] + buf[2] > 32) ? 2 : 0;
-	else
+	if (buf[0] == 0) {
+		if (buf[1] + buf[2] > 32)
+			ts->chip_id = 2;
+		else
+			ts->chip_id = 0;
+	} else {
 		ts->chip_id = buf[0];
-
+	}
 	ts->Num_X = buf[1];
 	ts->Num_Y = buf[2];
 
 	dev_info(&ts->client->dev, "chip_id=%d Num_X=%d Num_Y=%d\n",
 		 ts->chip_id, ts->Num_X, ts->Num_Y);
-	return 0;
-}
-
-static int stx_get_fw_revision(struct sitronix_ts *ts)
-{
-	int ret = stx_i2c_read(ts->client, FIRMWARE_REVISION_3,
-				 ts->fw_revision, 4);
-	if (ret < 0)
-		return ret;
-
-	dev_info(&ts->client->dev, "fw_revision: %02x %02x %02x %02x\n",
-		 ts->fw_revision[0], ts->fw_revision[1],
-		 ts->fw_revision[2], ts->fw_revision[3]);
 	return 0;
 }
 
@@ -117,9 +109,9 @@ static int stx_get_protocol_type(struct sitronix_ts *ts)
 		ret = stx_i2c_read(ts->client, I2C_PROTOCOL, buf, 1);
 		if (ret < 0)
 			return ret;
+
 		ts->protocol_type = buf[0] & I2C_PROTOCOL_BMSK;
 	} else {
-		/* chip_id > 3: always A-type */
 		ts->protocol_type = SITRONIX_A_TYPE;
 	}
 
@@ -136,7 +128,10 @@ static int stx_get_max_touches(struct sitronix_ts *ts)
 	if (ret < 0)
 		return ret;
 
-	ts->max_touches = min_t(u8, buf[0], SITRONIX_MAX_TOUCHES);
+	ts->max_touches = buf[0];
+	if (ts->max_touches > SITRONIX_MAX_TOUCHES)
+		ts->max_touches = SITRONIX_MAX_TOUCHES;
+
 	dev_info(&ts->client->dev, "max_touches=%d\n", ts->max_touches);
 	return 0;
 }
@@ -145,38 +140,33 @@ static int stx_init_ic(struct sitronix_ts *ts)
 {
 	int ret;
 
-	ret = stx_get_resolution(ts);
-	if (ret < 0) return ret;
-
 	ret = stx_get_chip_id(ts);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
-	ret = stx_get_fw_revision(ts);
-	if (ret < 0) return ret;
+	ret = stx_get_resolution(ts);
+	if (ret < 0)
+		return ret;
 
 	ret = stx_get_protocol_type(ts);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
 	ret = stx_get_max_touches(ts);
-	if (ret < 0) return ret;
+	if (ret < 0)
+		return ret;
 
-	/*
-	 * Vendor quirk: if fw_revision bytes 0-1 are both 0 and protocol
-	 * type is RESERVED, force B-type (older panels).
-	 */
-	if ((ts->fw_revision[0] == 0) && (ts->fw_revision[1] == 0) &&
-	    (ts->protocol_type == SITRONIX_RESERVED_TYPE_0)) {
-		ts->protocol_type = SITRONIX_B_TYPE;
-		dev_info(&ts->client->dev, "protocol forced to B-type\n");
-	}
-
-	if (ts->protocol_type == SITRONIX_A_TYPE) {
-		ts->pixel_length = PIXEL_DATA_LENGTH_A;
-	} else {
-		/* B-type: 3-byte packets, max 2 touches */
+	/* Derive bytes per touch from protocol type */
+	switch (ts->protocol_type) {
+	case SITRONIX_B_TYPE:
 		ts->pixel_length = PIXEL_DATA_LENGTH_B;
 		ts->max_touches  = 2;
 		dev_info(&ts->client->dev, "B-type: max_touches clamped to 2\n");
+		break;
+	case SITRONIX_A_TYPE:
+	default:
+		ts->pixel_length = PIXEL_DATA_LENGTH_A;
+		break;
 	}
 
 	return 0;
@@ -213,13 +203,14 @@ static const struct sitronix_sensor_key stx_keys[] = {
 };
 #define STX_NUM_KEYS ARRAY_SIZE(stx_keys)
 
-static void stx_report_sensor_keys(struct sitronix_ts *ts, u8 cur)
+static char stx_prev_key_status;
+
+static void stx_report_sensor_keys(struct input_dev *input, u8 cur)
 {
-	struct input_dev *input = ts->input;
 	int i;
 
 	for (i = 0; i < STX_NUM_KEYS; i++) {
-		bool was = (ts->prev_key_status >> i) & 1;
+		bool was = (stx_prev_key_status >> i) & 1;
 		bool is  = (cur >> i) & 1;
 
 		if (is && !was)
@@ -227,7 +218,7 @@ static void stx_report_sensor_keys(struct sitronix_ts *ts, u8 cur)
 		else if (!is && was)
 			input_report_key(input, stx_keys[i].code, 0);
 	}
-	ts->prev_key_status = cur;
+	stx_prev_key_status = cur;
 }
 
 /*
@@ -310,7 +301,7 @@ static void stx_report_touches(struct sitronix_ts *ts)
 	/* Sensor keys */
 	for (i = 0; i < STX_NUM_KEYS; i++)
 		input_set_capability(input, EV_KEY, stx_keys[i].code);
-	stx_report_sensor_keys(ts, key_status);
+	stx_report_sensor_keys(input, key_status);
 
 	input_sync(input);
 
@@ -399,7 +390,6 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	struct device *dev = &client->dev;
 	struct sitronix_ts *ts;
 	struct input_dev   *input;
-	int i;
 	int ret;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
@@ -496,9 +486,6 @@ static int sitronix_ts_probe(struct i2c_client *client)
 		dev_err(dev, "input_mt_init_slots failed: %d\n", ret);
 		return ret;
 	}
-
-	for (i = 0; i < STX_NUM_KEYS; i++)
-		input_set_capability(input, EV_KEY, stx_keys[i].code);
 
 	input_set_drvdata(input, ts);
 
