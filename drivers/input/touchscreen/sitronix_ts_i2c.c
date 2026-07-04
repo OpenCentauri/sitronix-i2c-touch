@@ -399,6 +399,7 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	struct device *dev = &client->dev;
 	struct sitronix_ts *ts;
 	struct input_dev   *input;
+	int i;
 	int ret;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
