@@ -10,9 +10,6 @@
  * Derived from Sitronix vendor driver
  *   (C) 2011 Sitronix Technology Co., Ltd. <rudy_huang@sitronix.com.tw>
  * Adapted and modernised for Linux 6.18 by OpenCentauri.
- *
- * Register map, protocol types, and packet layouts are taken verbatim
- * from the Sitronix vendor reference driver (GPL-2.0).
  */
 
 #include "sitronix_ts_i2c.h"
@@ -216,14 +213,13 @@ static const struct sitronix_sensor_key stx_keys[] = {
 };
 #define STX_NUM_KEYS ARRAY_SIZE(stx_keys)
 
-static char stx_prev_key_status;
-
-static void stx_report_sensor_keys(struct input_dev *input, u8 cur)
+static void stx_report_sensor_keys(struct sitronix_ts *ts, u8 cur)
 {
+	struct input_dev *input = ts->input;
 	int i;
 
 	for (i = 0; i < STX_NUM_KEYS; i++) {
-		bool was = (stx_prev_key_status >> i) & 1;
+		bool was = (ts->prev_key_status >> i) & 1;
 		bool is  = (cur >> i) & 1;
 
 		if (is && !was)
@@ -231,7 +227,7 @@ static void stx_report_sensor_keys(struct input_dev *input, u8 cur)
 		else if (!is && was)
 			input_report_key(input, stx_keys[i].code, 0);
 	}
-	stx_prev_key_status = cur;
+	ts->prev_key_status = cur;
 }
 
 /*
@@ -314,7 +310,7 @@ static void stx_report_touches(struct sitronix_ts *ts)
 	/* Sensor keys */
 	for (i = 0; i < STX_NUM_KEYS; i++)
 		input_set_capability(input, EV_KEY, stx_keys[i].code);
-	stx_report_sensor_keys(input, key_status);
+	stx_report_sensor_keys(ts, key_status);
 
 	input_sync(input);
 
@@ -403,7 +399,6 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	struct device *dev = &client->dev;
 	struct sitronix_ts *ts;
 	struct input_dev   *input;
-	enum of_gpio_flags gpio_flags;
 	int ret;
 
 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
@@ -420,10 +415,8 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	i2c_set_clientdata(client, ts);
 
 	/* ---- GPIO setup ---------------------------------------------------- */
-	ts->irq_gpio = of_get_named_gpio_flags(dev->of_node, "irq-gpio", 0,
-					       (enum of_gpio_flags *)&ts->irq_flags);
-	ts->rst_gpio = of_get_named_gpio_flags(dev->of_node, "rst-gpio", 0,
-					       (enum of_gpio_flags *)&ts->rst_flags);
+	ts->irq_gpio = of_get_named_gpio(dev->of_node, "irq-gpio", 0);
+	ts->rst_gpio = of_get_named_gpio(dev->of_node, "rst-gpio", 0);
 
 	if (gpio_is_valid(ts->rst_gpio)) {
 		ret = devm_gpio_request_one(dev, ts->rst_gpio,
@@ -502,6 +495,9 @@ static int sitronix_ts_probe(struct i2c_client *client)
 		dev_err(dev, "input_mt_init_slots failed: %d\n", ret);
 		return ret;
 	}
+
+	for (i = 0; i < STX_NUM_KEYS; i++)
+		input_set_capability(input, EV_KEY, stx_keys[i].code);
 
 	input_set_drvdata(input, ts);
 

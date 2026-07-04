@@ -116,9 +116,7 @@ struct sitronix_ts {
 
 	/* DT-provided GPIOs */
 	int           irq_gpio;
-	unsigned long irq_flags;
 	int           rst_gpio;
-	unsigned long rst_flags;
 
 	/* IC capabilities (read from registers at probe) */
 	uint8_t  fw_revision[4];
@@ -130,6 +128,8 @@ struct sitronix_ts {
 	uint8_t  pixel_length;    /* bytes per touch in packet */
 	uint8_t  Num_X;
 	uint8_t  Num_Y;
+
+	u8       prev_key_status;
 
 	bool     suspended;
 };
