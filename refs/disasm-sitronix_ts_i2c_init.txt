@@ -1,0 +1,11 @@
+
+/home/paul/carbon/cc2-firmware/stock/extractions/kernel-01.03.01.89.extracted/460C/decompressed.bin:     file format binary
+
+
+Disassembly of section .data:
+
+c043d46c <.data+0x43546c>:
+c043d46c:	e59f1004 	ldr	r1, [pc, #4]	@ 0xc043d478
+c043d470:	e3a00000 	mov	r0, #0
+c043d474:	ea004945 	b	0xc044f990
+c043d478:	c0a2d2e8 	adcgt	sp, r2, r8, ror #5

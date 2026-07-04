@@ -1,0 +1,28 @@
+
+/home/paul/carbon/cc2-firmware/stock/extractions/kernel-01.03.01.89.extracted/460C/decompressed.bin:     file format binary
+
+
+Disassembly of section .data:
+
+c043dadc <.data+0x435adc>:
+c043dadc:	e92d4037 	push	{r0, r1, r2, r4, r5, lr}
+c043dae0:	e3a010f4 	mov	r1, #244	@ 0xf4
+c043dae4:	e59f4040 	ldr	r4, [pc, #64]	@ 0xc043db2c
+c043dae8:	e28d2003 	add	r2, sp, #3
+c043daec:	e1a05000 	mov	r5, r0
+c043daf0:	e5943000 	ldr	r3, [r4]
+c043daf4:	e58d3004 	str	r3, [sp, #4]
+c043daf8:	e3a03001 	mov	r3, #1
+c043dafc:	ebffff8b 	bl	0xc043d930
+c043db00:	e3500000 	cmp	r0, #0
+c043db04:	e59d2004 	ldr	r2, [sp, #4]
+c043db08:	a5dd3003 	ldrbge	r3, [sp, #3]
+c043db0c:	a3a00000 	movge	r0, #0
+c043db10:	a5c53014 	strbge	r3, [r5, #20]
+c043db14:	e5943000 	ldr	r3, [r4]
+c043db18:	e1520003 	cmp	r2, r3
+c043db1c:	0a000000 	beq	0xc043db24
+c043db20:	ebf36da1 	bl	0xc01191ac
+c043db24:	e28dd00c 	add	sp, sp, #12
+c043db28:	e8bd8030 	pop	{r4, r5, pc}
+c043db2c:	c0a04e08 	adcgt	r4, r0, r8, lsl #28

@@ -1,0 +1,15 @@
+gpiochip0: GPIOs 0-223, parent: platform/pio, pio:
+ gpio-41  (                    |usb1-vbus           ) out lo 
+ gpio-43  (                    |sysfs               ) out hi 
+ gpio-108 (                    |otg_det             ) in  hi 
+ gpio-116 (                    |sysfs               ) out hi 
+ gpio-118 (                    |sysfs               ) in  lo 
+ gpio-128 (                    |st_rst_gpio         ) out hi 
+ gpio-129 (                    |st_irq_gpio         ) in  hi IRQ 
+ gpio-136 (                    |sunxi,uart-485oe    ) out lo 
+ gpio-145 (                    |sysfs               ) out hi 
+ gpio-198 (                    |wlan_hostwake       ) in  lo IRQ 
+ gpio-199 (                    |wlan_regon          ) out hi 
+ gpio-201 (                    |sysfs               ) in  lo 
+ gpio-203 (                    |sysfs               ) out hi 
+ gpio-210 (                    |bt_rst              ) out lo 

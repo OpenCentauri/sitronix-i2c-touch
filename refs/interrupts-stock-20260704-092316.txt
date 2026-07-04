@@ -1,0 +1,32 @@
+           CPU0       CPU1       
+ 17:          0          0     GIC-0  29 Level     arch_timer
+ 18:     337314     330861     GIC-0  30 Level     arch_timer
+ 21:          2          0     GIC-0  91 Level     timer@2050000
+ 24:          0          0     GIC-0  96 Level     2010000.iommu
+ 25:          0          0     GIC-0 176 Level     7090000.rtc
+ 26:          0          0     GIC-0  82 Level     3002000.dma-controller
+ 34:       1143          0     GIC-0  34 Level     uart0
+ 35:       1242          0     GIC-0  35 Level     uart1
+ 36:       2607          0     GIC-0  37 Level     uart3
+ 40:       2035          0     GIC-0  74 Level     mmc2
+ 41:      16857          0     GIC-0  73 Level     mmc1
+ 42:          0          0     GIC-0  98 Level     cedar_dev
+ 43:      15613          0     GIC-0  43 Level     twi2
+ 46:        339          0     GIC-0 121 Level     5410000.g2d
+ 49:      24399          0     GIC-0 124 Level     dispaly
+ 50:       3245          0     GIC-0  32 Level     3003000.msgbox
+ 51:          0          0     GIC-0 155 Level     3003000.msgbox
+ 52:          0          0     GIC-0 162 Level     3003000.msgbox
+ 53:          0          0     GIC-0  61 Level     sunxi_usb_udc
+ 56:     101025          0     GIC-0  65 Level     ehci_hcd:usb1
+ 57:          0          0     GIC-0  66 Level     ohci_hcd:usb2
+157:        251          0  sunxi_pio_level  97 Level     sitronix_ts_i2c
+226:          0          0  sunxi_pio_edge 166 Edge      rwnx_hostwake_irq
+IPI0:          0          0  CPU wakeup interrupts
+IPI1:          0          0  Timer broadcast interrupts
+IPI2:      25670      52064  Rescheduling interrupts
+IPI3:         24         42  Function call interrupts
+IPI4:          0          0  CPU stop interrupts
+IPI5:          0          0  IRQ work interrupts
+IPI6:          0          0  completion interrupts
+Err:          0

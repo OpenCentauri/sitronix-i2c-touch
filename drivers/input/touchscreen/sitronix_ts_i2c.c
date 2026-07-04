@@ -5,15 +5,15 @@
  * Sitronix I2C Touchscreen Controller Driver
  * Target: Linux 6.18, out-of-tree .ko
  *
- * Compatible: "sitronixts" (matches DTS node sitronix55@55)
+ * Compatible: "sitronix_ts", "sitronixts", "sitronix,st1232"
  *
  * Derived from Sitronix vendor driver
  *   (C) 2011 Sitronix Technology Co., Ltd. <rudy_huang@sitronix.com.tw>
  * Adapted and modernised for Linux 6.18 by OpenCentauri.
+ *
+ * Register map, protocol types, and packet layouts are taken verbatim
+ * from the Sitronix vendor reference driver (GPL-2.0).
  */
-
-#include "sitronix_ts_i2c.h"
-#include <linux/version.h>
 #include <linux/of.h>
 #include <linux/of_device.h>
 #include <linux/pm_runtime.h>
@@ -192,9 +192,9 @@ static void stx_hw_reset(struct sitronix_ts *ts)
 		return;
 
 	gpio_direction_output(ts->rst_gpio, 0);
-	msleep(20);
+	msleep(1);
 	gpio_set_value(ts->rst_gpio, 1);
-	msleep(50);
+	msleep(100);
 	dev_dbg(&ts->client->dev, "hw reset done\n");
 }
 
@@ -417,7 +417,7 @@ static int sitronix_ts_probe(struct i2c_client *client)
 
 	/* ---- GPIO setup ---------------------------------------------------- */
 	ts->irq_gpio = of_get_named_gpio(dev->of_node, "irq-gpio", 0);
-	ts->rst_gpio = of_get_named_gpio(dev->of_node, "rst-gpio", 0);
+	ts->rst_gpio = of_get_named_gpio(dev->of_node, "reset-gpio", 0);
 
 	if (gpio_is_valid(ts->rst_gpio)) {
 		ret = devm_gpio_request_one(dev, ts->rst_gpio,
@@ -511,7 +511,7 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	/* ---- Threaded IRQ -------------------------------------------------- */
 	ret = devm_request_threaded_irq(dev, client->irq,
 					NULL, sitronix_ts_irq_thread,
-					IRQF_ONESHOT | IRQF_TRIGGER_FALLING,
+					IRQF_ONESHOT | IRQF_TRIGGER_LOW,
 					SITRONIX_TS_I2C_DRVNAME, ts);
 	if (ret) {
 		dev_err(dev, "request_threaded_irq failed: %d\n", ret);
@@ -535,6 +535,7 @@ static void sitronix_ts_remove(struct i2c_client *client)
 /* ======================================================================== */
 
 static const struct of_device_id sitronix_ts_of_match[] = {
+	{ .compatible = "sitronix_ts" },
 	{ .compatible = "sitronixts" },
 	{ .compatible = "sitronix,st1232" },
 	{ .compatible = "sitronix,st1633" },

@@ -1,0 +1,2 @@
+157:        251          0  sunxi_pio_level  97 Level     sitronix_ts_i2c
+157:        251          0  sunxi_pio_level  97 Level     sitronix_ts_i2c

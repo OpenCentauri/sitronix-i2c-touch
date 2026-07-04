@@ -1,0 +1,31 @@
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="sitronix_ts_i2c"
+P: Phys=
+S: Sysfs=/devices/platform/soc@3000000/twi2/i2c-2/2-0055/input/input0
+U: Uniq=
+H: Handlers=kbd event0 
+B: PROP=2
+B: EV=b
+B: KEY=400 0 0 0 0 0 40000800 1016c0 0 4d040 81460000
+B: ABS=6618000 0
+
+I: Bus=0003 Vendor=a108 Product=2240 Version=0090
+N: Name="Ingenic HD Web Camera: JVS Came"
+P: Phys=usb-sunxi-ehci-1.1/button
+S: Sysfs=/devices/platform/soc@3000000/4200000.ehci1-controller/usb1/1-1/1-1.1/1-1.1:1.0/input/input1
+U: Uniq=
+H: Handlers=kbd event1 
+B: PROP=0
+B: EV=3
+B: KEY=100000 0 0 0 0 0 0
+
+I: Bus=0003 Vendor=a108 Product=2240 Version=0090
+N: Name="Ingenic HD Web Camera: JVS Came"
+P: Phys=usb-sunxi-ehci-1.1/button
+S: Sysfs=/devices/platform/soc@3000000/4200000.ehci1-controller/usb1/1-1/1-1.1/1-1.1:1.2/input/input2
+U: Uniq=
+H: Handlers=kbd event2 
+B: PROP=0
+B: EV=3
+B: KEY=100000 0 0 0 0 0 0
+

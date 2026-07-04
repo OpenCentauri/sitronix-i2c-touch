@@ -1,0 +1,205 @@
+[    3.483451] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    3.490934] usb 1-1.1: Product: Ingenic HD Web Camera
+[    3.496100] usb 1-1.1: Manufacturer: Ingenic Semiconductor Co.,Ltd
+[    3.502301] usb 1-1.1: SerialNumber: Ucamera001
+[    3.508172] display_fb_request,fb_id:0
+[    3.516800] [DISP]disp_module_init finish
+[    3.520964] disp_al_manager_apply ouput_type:1
+[    3.525922] dclk_rate=20000000, lcd_rate=480000000, pll_rate=480000000, lcd_rate_set=480000000
+[    3.535008] dclk_rate=20000000, lcd_rate=480000000, pll_rate=480000000, lcd_rate_set=480000000, dclk_rate_set=120000000
+[    3.550707] uvcvideo: Found UVC 1.10 device Ingenic HD Web Camera (a108:2240)
+[    3.558038] [DISP] lcd_clk_config,line:774:
+[    3.558053] disp 0, clk: pll(480000000),clk(480000000),dclk(20000000) dsi_rate(20000000)
+[    3.558053]      clk real:pll(480000000),clk(480000000),dclk(120000000) dsi_rate(150000000)
+[    3.590793] input: Ingenic HD Web Camera: JVS Came as /devices/platform/soc@3000000/4200000.ehci1-controller/usb1/1-1/1-1.1/1-1.1:1.0/input/input1
+[    3.606366] uvcvideo: Found UVC 1.10 device Ingenic HD Web Camera (a108:2240)
+[    3.625663] uvcvideo: Failed to query (GET_INFO) UVC control 12 on unit 9: -32 (exp. 1).
+[    3.643743] Freeing logo buffer memory: 624K
+[    3.649913] input: Ingenic HD Web Camera: JVS Came as /devices/platform/soc@3000000/4200000.ehci1-controller/usb1/1-1/1-1.1/1-1.1:1.2/input/input2
+[    3.763898] usb 1-1.3: new high-speed USB device number 4 using sunxi-ehci
+[    3.914740] usb 1-1.3: New USB device found, idVendor=214b, idProduct=7260, bcdDevice= 1.00
+[    3.923264] usb 1-1.3: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+[    3.930764] usb 1-1.3: Product: USB2.0 HUB
+[    3.936434] hub 1-1.3:1.0: USB hub found
+[    3.940668] hub 1-1.3:1.0: 4 ports detected
+[    4.010262] mount_root: mounting /dev/root
+[    4.015815] mount_root: loading kmods from internal overlay
+[    4.110282] block: attempting to load /etc/config/fstab
+[    4.263885] usb 1-1.3.1: new high-speed USB device number 5 using sunxi-ehci
+[    4.414594] usb 1-1.3.1: New USB device found, idVendor=214b, idProduct=7260, bcdDevice= 1.00
+[    4.423226] usb 1-1.3.1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+[    4.430903] usb 1-1.3.1: Product: USB2.0 HUB
+[    4.436938] hub 1-1.3.1:1.0: USB hub found
+[    4.441359] hub 1-1.3.1:1.0: 4 ports detected
+[    4.543835] usb 1-1.3.2: new high-speed USB device number 6 using sunxi-ehci
+[    4.603116] EXT4-fs (mmcblk0p9): mounted filesystem with ordered data mode. Opts: 
+[    4.614126] block: extroot: UUID match (root: 8dda8426-996f1f17-b49ddb2c-6fafe46d, overlay: 8dda8426-996f1f17-b49ddb2c-6fafe46d)
+[    4.635992] mount_root: switched to extroot
+[    4.654488] procd: - early -
+[    4.657514] procd: - watchdog -
+[    4.696099] usb 1-1.3.2: New USB device found, idVendor=18a5, idProduct=0250, bcdDevice= 1.10
+[    4.704851] usb 1-1.3.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    4.707954] random: procd: uninitialized urandom read (4 bytes read)
+[    4.712361] usb 1-1.3.2: Product: STORE N GO
+[    4.723606] usb 1-1.3.2: Manufacturer: Verbatim
+[    4.729513] usb 1-1.3.2: SerialNumber: 900051945ACA9B42
+[    4.786944] usb-storage 1-1.3.2:1.0: USB Mass Storage device detected
+[    4.803906] usb 1-1.3.1.1: new high-speed USB device number 7 using sunxi-ehci
+[    4.808944] scsi host0: usb-storage 1-1.3.2:1.0
+[    4.915401] procd: - watchdog -
+[    4.918809] procd: failed to set stdio
+[    4.922762] procd: - ubus -
+[    4.926434] procd (1): /proc/1166/oom_adj is deprecated, please use /proc/1166/oom_score_adj instead.
+[    5.023959] random: ubusd: uninitialized urandom read (4 bytes read)
+[    5.069232] usb 1-1.3.1.1: New USB device found, idVendor=0bda, idProduct=8153, bcdDevice=31.00
+[    5.079103] usb 1-1.3.1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=6
+[    5.086051] random: ubusd: uninitialized urandom read (4 bytes read)
+[    5.086904] usb 1-1.3.1.1: Product: USB 10/100/1000 LAN
+[    5.096976] procd: - init -
+[    5.098507] usb 1-1.3.1.1: Manufacturer: Realtek
+[    5.105947] usb 1-1.3.1.1: SerialNumber: 001000001
+[    5.206658] usb 1-1.3.1.3: new full-speed USB device number 8 using sunxi-ehci
+[    5.390754] usb 1-1.3.1.3: not running at top speed; connect to a high speed hub
+[    5.456560] usb 1-1.3.1.3: New USB device found, idVendor=0020, idProduct=0b21, bcdDevice=26.81
+[    5.465337] usb 1-1.3.1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    5.473006] usb 1-1.3.1.3: Product: USB Audio
+[    5.477493] usb 1-1.3.1.3: Manufacturer: Generic
+[    5.482111] usb 1-1.3.1.3: SerialNumber: 20210726905926
+[    5.593927] fuse: init (API version 7.31)
+[    5.602343] aicbsp_init
+[    5.613942] RELEASE_DATE:2024_1119_06da8476
+[    5.618228] aicbsp_resv_mem_init 
+[    5.621583] usb 1-1.3.1.4: new high-speed USB device number 9 using sunxi-ehci
+[    5.644624] aicbsp: aicbsp_set_subsys, subsys: AIC_WIFI, state to: 1
+[    5.650988] aicbsp: aicbsp_set_subsys, power state change to 1 dure to AIC_WIFI
+[    5.672680] aicbsp: aicbsp_platform_power_on
+[    5.680599] sunxi-rfkill soc@3000000:rfkill@0: bus_index: 1
+[    5.834778] sunxi-rfkill soc@3000000:rfkill@0: wlan power on success
+[    5.846606] usb 1-1.3.1.4: New USB device found, idVendor=349c, idProduct=0418, bcdDevice= 3.01
+[    5.873899] usb 1-1.3.1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    5.881556] usb 1-1.3.1.4: Product: USB2.0 Device
+[    5.885042] scsi 0:0:0:0: Direct-Access     Verbatim STORE N GO       PMAP PQ: 0 ANSI: 6
+[    5.893867] usb 1-1.3.1.4: Manufacturer: Generic
+[    5.899071] usb 1-1.3.1.4: SerialNumber: 20240418000000
+[    5.907314] sd 0:0:0:0: [sda] 31129600 512-byte logical blocks: (15.9 GB/14.8 GiB)
+[    5.916939] sd 0:0:0:0: [sda] Write Protect is off
+[    5.921866] sd 0:0:0:0: [sda] Mode Sense: 45 00 00 00
+[    5.929255] usb-storage 1-1.3.1.4:1.0: USB Mass Storage device detected
+[    5.954339] sd 0:0:0:0: [sda] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+[    5.954608] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 0Hz bm PP pm UP vdd 21 width 1 timing LEGACY(SDR12) dt B
+[    5.975500] scsi host1: usb-storage 1-1.3.1.4:1.0
+[    5.987978] sunxi-mmc 4021000.sdmmc: no vqmmc,Check if there is regulator
+[    6.003916] 
+[    6.003916] insmod_device_driver
+[    6.003916] 
+[    6.010472] sunxi_usb_udc 4100000.udc-controller: 4100000.udc-controller supply udc not found, using dummy regulator
+[    6.046375] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+[    6.077377] sunxi-mmc 4021000.sdmmc: smc 1 p1 err, cmd 52, RTO !!
+[    6.084431] sunxi-mmc 4021000.sdmmc: smc 1 p1 err, cmd 52, RTO !!
+[    6.090687] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+[    6.113431] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing LEGACY(SDR12) dt B
+[    6.142279]  sda: sda1 sda2
+[    6.149696] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 400000Hz bm PP pm ON vdd 21 width 1 timing SD-HS(SDR25) dt B
+[    6.158200] sd 0:0:0:0: [sda] Attached SCSI removable disk
+[    6.170812] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 50000000Hz bm PP pm ON vdd 21 width 1 timing SD-HS(SDR25) dt B
+[    6.181542] sunxi-mmc 4021000.sdmmc: sdc set ios:clk 50000000Hz bm PP pm ON vdd 21 width 4 timing SD-HS(SDR25) dt B
+[    6.196047] mmc1: new high speed SDIO card at address 390b
+[    6.231762] aicbsp: aicbsp_sdio_probe:1 vid:0xC8A1  did:0x0082
+[    6.244117] aicbsp: aicbsp_sdio_probe:2 vid:0xC8A1  did:0x0182
+[    6.249968] aicbsp: aicbsp_sdio_probe after replace:1
+[    6.257880] aicbsp: aicbsp_get_feature, set FEATURE_SDIO_CLOCK 150 MHz
+[    6.264436] aicbsp: aicwf_sdio_reg_init
+[    6.276712] rwnx_load_firmware :firmware path = /lib/firmware/fw_patch_table_8800d80_u02.bin  
+[    6.374506] file md5:2a860bc9f2ec72ed45ed20c464ec66ba
+[    6.379909] rwnx_plat_bin_fw_upload_android
+[    6.384288] rwnx_load_firmware :firmware path = /lib/firmware/fw_adid_8800d80_u02.bin  
+[    6.392694] file md5:f546881a81b960d89a672578eb45a809
+[    6.398931] rwnx_plat_bin_fw_upload_android
+[    6.452114] rwnx_load_firmware :firmware path = /lib/firmware/fw_patch_8800d80_u02.bin  
+[    6.461369] file md5:6ef0dc3eb798477555461169a77ed4f8
+[    6.527051] rwnx_plat_bin_fw_upload_android
+[    6.531332] rwnx_load_firmware :firmware path = /lib/firmware/fw_patch_8800d80_u02_ext0.bin  
+[    6.544244] file md5:2110a40c713998d743127d65239a71fe
+[    6.589876] aicbt_patch_table_load bt btmode[3]:5 
+[    6.595077] aicbt_patch_table_load bt uart_baud[3]:1500000 
+[    6.600780] aicbt_patch_table_load bt uart_flowctrl[3]:1 
+[    6.611700] aicbt_patch_table_load bt lpm_enable[3]:0 
+[    6.617147] aicbt_patch_table_load bt tx_pwr[3]:28463 
+[    6.633172] aicbsp: bt patch version: - Nov 18 2024 16:37:52 - git 1a301b6
+[    6.640482] rwnx_plat_bin_fw_upload_android
+[    6.644854] rwnx_load_firmware :firmware path = /lib/firmware/fmacfw_8800d80_h_u02.bin  
+[    6.754930] file md5:a276153cb94641facc6071b6d3d76ab2
+[    6.873014] rd_version_val=06090101
+[    6.895737] aicbsp: aicbsp_get_feature, set FEATURE_SDIO_CLOCK 150 MHz
+[    6.902273] aicsdio: aicwf_sdio_reg_init
+[    6.911713] aicwf_prealloc_init enter
+[    6.916224] pre alloc rxbuff list len: 30
+[    6.920390] aicbsp: aicbsp_resv_mem_alloc_skb, alloc resv_mem_txdata succuss, id: 0, size: 98304
+[    6.930583] aicbsp: aicbsp_get_feature, set FEATURE_SDIO_CLOCK 150 MHz
+[    6.937288] aicbsp: sdio_err:<aicwf_sdio_bus_pwrctl,1400>: bus down
+[    6.945123] tcp_ack_init 
+[    7.246865] scsi 1:0:0:0: Direct-Access     Generic  Mass-Storage     2.00 PQ: 0 ANSI: 2
+[    7.306840] sd 1:0:0:0: [sdb] Attached SCSI removable disk
+[    7.843459] ieee80211 phy0: HT supp 1, VHT supp 1, HE supp 1
+[    7.852092] ieee80211 phy0: 
+[    7.852092] *******************************************************
+[    7.852092] ** CAUTION: USING PERMISSIVE CUSTOM REGULATORY RULES **
+[    7.852092] *******************************************************
+[    7.962190] get_txpwr_max:txpwr_max:18 
+[    7.968478] aicbsp: aicbsp_get_feature, set FEATURE_SDIO_CLOCK 150 MHz
+[    7.989059] xt_time: kernel timezone is -0000
+[    8.007257] FAT-fs (sda1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[    8.499180] FAT-fs (mmcblk0p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[    8.527777] udev: starting version 142
+[    8.569218] e2fsck 1.42.12 (29-Aug-2014)
+[    8.634999] /dev/by-name/UDISK: recovering journal
+[    8.804744] Setting free 
+[    8.804763] block
+[    8.807521] s count to 
+[    8.809526] 1505642
+[    8.830632]  (was 
+[    8.832848] 1505682
+[    8.835846] )
+[    8.839763] /dev/by-name/UDISK: clean, 5828/427392 files, 201742/1707384 blocks
+[    8.865905] EXT4-fs (mmcblk0p12): mounted filesystem with ordered data mode. Opts: 
+[    8.895592] printk: S40fstab: 1 output lines suppressed due to ratelimiting
+[   10.361284] get_txpwr_max:txpwr_max:18 
+[   10.365680] get_txpwr_max:txpwr_max:18 
+[   10.370452] get_txpwr_max:txpwr_max:18 
+[   10.374671] get_txpwr_max:txpwr_max:18 
+[   10.379857] get_txpwr_max:txpwr_max:18 
+[   10.615780] rwnx_virtual_interface_add: 10, p2p-dev-wlan0
+[   10.621206] rwnx_virtual_interface_add, ifname=p2p-dev-wlan0, wdev=(ptrval), vif_idx=1
+[   10.633933] p2p dev addr=a8 b5 8e 59 93 dc
+[   10.638093] get_txpwr_max:txpwr_max:18 
+[   10.642051] get_txpwr_max:txpwr_max:18 
+[   10.942212] get_txpwr_max:txpwr_max:18 
+[   10.985585] get_txpwr_max:txpwr_max:18 
+[   10.989656] get_txpwr_max:txpwr_max:18 
+[   10.993744] get_txpwr_max:txpwr_max:18 
+[   10.999790] get_txpwr_max:txpwr_max:18 
+[   11.016039] get_txpwr_max:txpwr_max:18 
+[   11.020098] P2P interface started
+[   11.875841] VE: enable hw clock
+[   11.879016] enable_cedar_hw_clk,552
+[   12.628722] rwnx_send_sm_connect_req drv_vif_index:0 connect to DiddyNetT(9) channel:2412 auth_type:0
+[   12.963871] random: crng init done
+[   12.967311] random: 6 urandom warning(s) missed due to ratelimiting
+[   15.388531] get_txpwr_max:txpwr_max:18 
+[   23.940637] get_txpwr_max:txpwr_max:18 
+[   25.785240] remoteproc remoteproc0: powering up dsp_rproc
+[   25.851739] remoteproc remoteproc0: Booting fw image rproc-dsp_rproc-fw, size 322928
+[   25.859817] remoteproc remoteproc0: dsp elf version: 01.01.09.21-40-g9fb5c3219-dirty-Nov  4 202510:37:13
+[   25.870132]  remoteproc0#vdev0buffer: assigned reserved memory node vdev0buffer@42200000
+[   25.880205] virtio_rpmsg_bus virtio0: rpmsg host is online
+[   25.890136]  remoteproc0#vdev0buffer: registered virtio0 (type 7)
+[   25.899098] remoteproc remoteproc0: remote processor dsp_rproc is now up
+[   25.931515] virtio_rpmsg_bus virtio0: creating channel sunxi,rpmsg_ctrl addr 0x400
+[   27.115386] sw_uart_check_baudset()845 - uart0, baud 250000 beyond rance
+[   27.559758] sw_uart_check_baudset()845 - uart3, baud 250000 beyond rance
+[   28.753531] virtio_rpmsg_bus virtio0: creating channel sunxi,rpmsg_client addr 0x401
+[   29.440517] sw_uart_check_baudset()845 - uart0, baud 250000 beyond rance
+[   29.447401] sw_uart_check_baudset()845 - uart0, baud 500000 beyond rance
+[   30.401326] sw_uart_check_baudset()845 - uart3, baud 250000 beyond rance
+[   63.103196] get_txpwr_max:txpwr_max:18 
+[   67.700052] get_txpwr_max:txpwr_max:18 
