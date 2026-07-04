@@ -1,163 +1,167 @@
-# Sitronix I2C Touchscreen Driver Notes
+# Sitronix I²C Touchscreen – Driver Research & Design Notes
 
-This document captures the analysis and design for integrating a Sitronix I2C touchscreen controller at address 0x55 on an Allwinner R528 (sun8iw20) SoC into a Linux 6.18 kernel, based on the discussion with the user.
+> **Platform:** Allwinner R528 (ARMv7-A, soft-float/hard-float)
+> **Kernel target:** Linux 6.18 (out-of-tree module)
+> **I²C address:** 0x55
+> **DTS compatible:** `"sitronixts"`
+> **Status:** Driver skeleton bootstrapped → full implementation committed
 
-## DTS context
+---
 
-The stock DTS for the board includes the following node on TWI2 (I2C controller at 0x2502800):
+## 1. Problem statement
+
+The mainline `st1232_ts` driver (`drivers/input/touchscreen/st1232.c`,
+module `st1232`) does not fully support the Sitronix touchscreen IC in this
+platform. The stock DTS uses:
 
 ```dts
-sitronix55 {
+sitronix55: touchscreen@55 {
     compatible = "sitronixts";
     reg = <0x55>;
     interrupt-parent = <&pio>;
-    interrupts = <4 1 8>;  // PB4
-    irq-gpio = <&pio 4 1 0>;
-    rst-gpio = <&pio 4 0 0>;
+    interrupts = <4 1 8>;      /* PB4, falling/active-low */
+    irq-gpio = <&pio 4 1 0>;  /* PB4 */
+    rst-gpio = <&pio 4 0 0>;  /* PB0 */
     status = "okay";
 };
 ```
 
-This indicates:
+This indicates a **non-mainline vendor driver** is expected.  The stock kernel
+exports these symbols:
 
-- A Sitronix touchscreen IC on I2C address 0x55.
-- A custom compatible string `"sitronixts"` (not mainline `"sitronix,st1232"` or `"sitronix,st1633"`).
-- Separate GPIOs for IRQ and RESET, both on bank PB.
+- `sitronix_ts_i2c` (I²C driver name)
+- `sitronix_ts.description = Sitronix Touchscreen Controller Driver`
+- `sitronix_ts_i2c_init` / `sitronix_ts_i2c_exit` (module init/exit)
 
-These properties match the expectations of the vendor Sitronix I2C touchscreen drivers that use `irq_gpio` and `reset_gpio` fields populated from device tree.[cite:1]
+---
 
-## Candidate driver family
+## 2. Candidate drivers
 
-Mainline Linux ships `drivers/input/touchscreen/st1232.c` (`st1232_ts` module) for Sitronix ST1232 and ST1633 controllers. The DT binding is documented in `Documentation/devicetree/bindings/input/touchscreen/sitronix-st1232.txt` and requires `compatible = "sitronix,st1232"` or `"sitronix,st1633"` plus `reg` and `interrupts` properties.[cite:2]
+### 2a. Primary: `sitronix_i2c_touch` (Sitronix vendor driver)
 
-However, the user reported that the mainline driver does not work correctly with their touchscreen, which is consistent with other field reports: the mainline driver implements only basic multitouch coordinate reporting and omits vendor-specific features (smart wake, key events, monitoring).[cite:3]
+This is the closest match to what the stock image used.  Available as
+`sitronix_i2c_touch.c` + `sitronix_i2c_touch.h` from CriticalLink and
+various Android/vendor kernel trees.
 
-A more complete Sitronix I2C touchscreen driver exists as `sitronix_i2c_touch.c` plus `sitronix_i2c_touch.h`, distributed in various vendor kernels (e.g., CriticalLink MitySOM support, Qualcomm Android examples). This driver:
+Key facts:
+- Written by Sitronix (GPL-2.0): Rudy Huang / Petitk Kao.
+- Targets I²C ICs at 0x55: ST1232, ST1633, ST1663i family.
+- Has conditional Sunxi platform hooks (`//#define CONFIG_ARCH_SUNXI`).
+- Reads chip ID, resolution, FW revision, protocol type, max touches from
+  IC registers rather than DTS — essential for self-describing panels.
+- Supports both **A-type** (5 bytes/touch, up to 10 fingers) and
+  **B-type** (3 bytes/touch, max 2 fingers) report packets.
+- Sensor key support (BACK/HOME/MENU from `KEYS_REG`).
+- Optional: monitor thread (Raw CRC watchdog), FW upgrade char device,
+  sysfs/proc interface — all compiled-out in this port.
 
-- Is authored by Sitronix and licensed under GPL.[cite:4]
-- Exposes names like `SITRONIX_I2C_TOUCH_MT_INPUT_DEV_NAME "SITRONIX"` and a char device `sitronixDev`.
-- Includes conditional support for Allwinner/Sunxi architectures and uses DT-provided GPIOs for reset and interrupt (`irq_gpio`, `reset_gpio`).[cite:5]
-- Implements protocol discovery at runtime: chip ID, firmware revision, protocol type, resolution, and maximum touches.[cite:6]
+Reference source: https://support.criticallink.com/redmine/attachments/download/15812/sitronix_i2c_touch.c
 
-Given the DTS and symbol names (`sitronix_ts_i2c_init`, `sitronix_ts_i2c_exit`) the closest match to the stock driver is a variant of this Sitronix vendor driver, not the mainline `st1232_ts`.
+### 2b. Secondary: mainline `st1232_ts`
 
-## Design goals for a standalone 6.18 driver
+Available in `drivers/input/touchscreen/st1232.c`.  Supports
+`sitronix,st1232` and `sitronix,st1633` DT compatible strings.
+Minimal feature set — does not implement vendor-specific protocol quirks,
+sensor keys, or self-description from registers.  Use as last resort only.
 
-The requested driver should:
+---
 
-- Build as an out-of-tree module (.ko) against Linux 6.18.
-- Bind to the DTS node with `compatible = "sitronixts"` and `reg = <0x55>`.
-- Use the TWI2 controller (`twi@2502800`) on the Allwinner R528 SoC.
-- Read `irq-gpio` and `rst-gpio` from DT and configure them for interrupt and reset.
-- Report multi-touch events via the input subsystem using modern `input_mt` APIs.
-- Avoid legacy early-suspend APIs and rely on standard PM ops.
-- Keep protocol handling (register reads, coordinate parsing) close to Sitronix vendor behavior while trimming unneeded features.
+## 3. Register map (from vendor driver)
 
-## High-level driver architecture
+| Offset | Name                | Notes                              |
+|--------|---------------------|------------------------------------|
+| 0x00   | FIRMWARE_VERSION    |                                    |
+| 0x01   | STATUS_REG          | [7:4] err_code, [3:0] dev_status   |
+| 0x02   | DEVICE_CONTROL_REG  | bit1 = power-down                  |
+| 0x04   | XY_RESOLUTION_HIGH  | [7:4]=X_H, [3:0]=Y_H              |
+| 0x05   | X_RESOLUTION_LOW    |                                    |
+| 0x06   | Y_RESOLUTION_LOW    |                                    |
+| 0x0C–0x0F | FIRMWARE_REVISION_3..0 |                               |
+| 0x10   | FINGERS             | [3:0] = active touch count         |
+| 0x11   | KEYS_REG            | bits 0-2 = BACK/HOME/MENU          |
+| 0x12   | XY0_COORD_H         | first touch high nibbles           |
+| 0x3E   | I2C_PROTOCOL        | [1:0] = protocol type              |
+| 0x3F   | MAX_NUM_TOUCHES     |                                    |
+| 0xF4   | CHIP_ID             | [0]=chip_id, [1]=Num_X, [2]=Num_Y |
 
-### Core structures
+---
 
-We define a private driver data structure:
+## 4. Protocol types
 
-```c
-struct sitronix_ts {
-    struct i2c_client      *client;
-    struct input_dev       *input;
-    struct mutex            lock;
-    struct work_struct      work;
+| Type | Value | Bytes/touch | Max touches | Notes              |
+|------|-------|-------------|-------------|--------------------|
+| A    | 1     | 5           | max_touches | Standard           |
+| B    | 2     | 3           | 2           | Older/simpler ICs  |
+| RSVD | 0     | –           | –           | → force B if FW≈0  |
 
-    int                     irq_gpio;
-    int                     rst_gpio;
-    unsigned long           irq_flags;
-    unsigned long           rst_flags;
+---
 
-    u16                     max_x;
-    u16                     max_y;
-    u8                      max_touches;
+## 5. Linux 6.18 adaptation notes
 
-    bool                    suspended;
-};
+| Vendor driver feature       | 6.18 adaptation                              |
+|-----------------------------|----------------------------------------------|
+| `CONFIG_HAS_EARLYSUSPEND`   | Removed; use `dev_pm_ops` `.suspend/.resume` |
+| `gpio_request` legacy API   | Kept (still valid in 6.18); gpiod preferred  |
+| `input_mt_sync()` legacy    | Replaced with `input_mt_init_slots` + slots  |
+| `LINUX_VERSION_CODE` guards | Removed; target is 6.18 only                 |
+| Monitor thread              | Compiled out (optional, add later)           |
+| FW upgrade char device      | Compiled out (optional, add later)           |
+| `VERIFY_WRITE` in ioctl     | Removed (dropped in 5.0)                     |
+| `access_ok` 2-arg           | Not needed (ioctl removed)                   |
+
+---
+
+## 6. DTS ↔ driver mapping
+
+| DTS property              | Driver field          | Notes                        |
+|---------------------------|-----------------------|------------------------------|
+| `reg = <0x55>`            | `client->addr`        | Sitronix default address     |
+| `compatible = "sitronixts"` | `of_match_table`    | Exact string match           |
+| `irq-gpio = <&pio 4 1 0>` | `ts->irq_gpio`        | PB4, read via `of_get_named_gpio_flags` |
+| `rst-gpio = <&pio 4 0 0>` | `ts->rst_gpio`        | PB0, output, active-low reset |
+| `interrupts = <4 1 8>`    | `client->irq`         | Falling edge, IRQF_TRIGGER_FALLING |
+
+---
+
+## 7. Build instructions
+
+See [`README.md`](README.md) for full build and load instructions.
+
+Quick cross-compile for R528:
+
+```bash
+make ARCH=arm \
+     CROSS_COMPILE=arm-linux-gnueabihf- \
+     KDIR=/path/to/linux-6.18
+insmod drivers/input/touchscreen/sitronix_ts_i2c.ko
 ```
 
-This mirrors the vendor driver's use of I2C client, input device, work queue for event handling, and DT-provided GPIOs. The resolution and max-touches are populated during probe by reading Sitronix registers.[cite:6]
+---
 
-### Device tree binding
+## 8. Validation checklist
 
-We add a new binding (documented in the repo's `Documentation/` directory) with the following properties:
+After `insmod`, check `dmesg` for:
 
-- `compatible`: must be `"sitronixts"`.
-- `reg`: I2C address (0x55 in this case).
-- `irq-gpio`: GPIO used for touch interrupt.
-- `rst-gpio`: GPIO used to reset the controller.
-- `interrupts` / `interrupt-parent`: standard DT interrupt wiring for the IRQ line.
-
-The driver will use `of_get_named_gpio_flags()` to obtain `irq_gpio` and `rst_gpio` and `devm_gpio_request_one()` / `gpiod_direction_output()` or the newer `devm_gpiod_get_optional()` API for configuration on 6.18.[cite:5]
-
-### Probe sequence
-
-In `sitronix_ts_probe()`:
-
-1. Validate the I2C adapter supports required functionality (`I2C_FUNC_I2C`).
-2. Fetch and configure GPIOs (reset low, then high) to bring the IC out of reset.[cite:5]
-3. Allocate and register an `input_dev`:
-   - Set `EV_ABS` and `EV_KEY` as needed.
-   - Configure ABS axes: `ABS_X`, `ABS_Y`, and `ABS_MT_POSITION_X/Y` ranges using `max_x`, `max_y`.
-   - Initialize multi-touch slots via `input_mt_init_slots()`.
-4. Request the IRQ via `devm_request_threaded_irq()` using the GPIO-backed interrupt line described by `interrupts` in the DTS.
-5. Read chip ID and firmware revision to verify the controller responds and optionally log them.
-
-This matches the vendor driver's basic initialization flow but uses modern resource-managed APIs and threaded IRQs suitable for 6.x kernels.[cite:6]
-
-### Interrupt handling
-
-The driver installs a threaded IRQ handler that:
-
-- Reads the Sitronix touch data report from the IC over I2C.
-- Parses the number of touches and their coordinates.
-- Reports touches using the slot-based `input_mt` API (e.g., `input_mt_slot()`, `input_mt_report_slot_state()`).
-- Calls `input_sync()` at the end of the frame.
-
-This avoids polling and aligns with mainline touchscreen drivers.`
-
-### Power management
-
-Instead of early-suspend, we add optional PM ops:
-
-```c
-static int sitronix_ts_suspend(struct device *dev)
-{
-    struct sitronix_ts *ts = dev_get_drvdata(dev);
-    ts->suspended = true;
-    disable_irq(ts->client->irq);
-    return 0;
-}
-
-static int sitronix_ts_resume(struct device *dev)
-{
-    struct sitronix_ts *ts = dev_get_drvdata(dev);
-    ts->suspended = false;
-    enable_irq(ts->client->irq);
-    return 0;
-}
-
-static const struct dev_pm_ops sitronix_ts_pm_ops = {
-    .suspend = sitronix_ts_suspend,
-    .resume  = sitronix_ts_resume,
-};
+```
+sitronix_ts_i2c 1-0055: resolution: NNN x NNN
+sitronix_ts_i2c 1-0055: chip_id=N Num_X=N Num_Y=N
+sitronix_ts_i2c 1-0055: fw_revision: XX XX XX XX
+sitronix_ts_i2c 1-0055: protocol_type=N
+sitronix_ts_i2c 1-0055: max_touches=N
+sitronix_ts_i2c 1-0055: Sitronix touchscreen probed ...
 ```
 
-These are wired into the `i2c_driver` struct via `.driver.pm = &sitronix_ts_pm_ops`, making the driver compatible with system suspend/resume while avoiding deprecated early-suspend interfaces.
+If you see `IC init failed` or I²C errors, check:
+1. `twi2` bus is enabled in DTS (`status = "okay"`).
+2. No competing driver (e.g. `st1232_ts`) is loaded.
+3. Power rails to the touch IC are up before probe.
 
-### Module integration
+---
 
-The driver is packaged as a standalone module under `drivers/input/touchscreen/` in the repo, but it builds out-of-tree against a configured Linux 6.18 tree. We provide:
+## 9. References
 
-- A `Makefile` that builds `sitronix_ts_i2c.ko`.
-- A `Kconfig` snippet that declares `CONFIG_TOUCHSCREEN_SITRONIX_TS55` and depends on `I2C` and `INPUT_TOUCHSCREEN`.
-- A top-level `README.md` and this `notes-sitronix-ts55.md` documenting usage.
-
-The module init/exit symbols can be named `sitronix_ts_i2c_init` and `sitronix_ts_i2c_exit` to match the user's expectations.
-
-## Next steps
-
-The next step is to implement the actual driver source files (`sitronix_ts_i2c.c`, optional header), add the Kbuild glue, and push them to the GitHub repo so the user can build and test the module against their 6.18 kernel.
+- Sitronix vendor driver: https://support.criticallink.com/redmine/attachments/download/15812/sitronix_i2c_touch.c
+- Sitronix vendor header: https://support.criticallink.com/redmine/attachments/download/15811/sitronix_i2c_touch.h
+- Mainline st1232 DT binding: `Documentation/devicetree/bindings/input/touchscreen/sitronix-st1232.txt`
+- Linux 6.18 input MT API: `include/linux/input/mt.h`
+- aic8800d80 driver structure reference: https://github.com/shenmintao/aic8800d80

@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: GPL-2.0
+config TOUCHSCREEN_SITRONIX_I2C
+	tristate "Sitronix I2C touchscreen (OpenCentauri out-of-tree)"
+	depends on I2C && INPUT
+	select INPUT_POLLDEV
+	help
+	  Driver for Sitronix I2C touchscreen controllers (ST1232, ST1633,
+	  ST1663i and related ICs at I2C address 0x55).
+
+	  Designed for the Allwinner R528 platform with DTS nodes using
+	  compatible = "sitronixts".  Also accepts "sitronix,st1232" and
+	  "sitronix,st1633" for compatibility with existing DTS.
+
+	  This module is built out-of-tree targeting Linux 6.18.  It produces
+	  sitronix_ts_i2c.ko.
+
+	  If unsure, say M.
