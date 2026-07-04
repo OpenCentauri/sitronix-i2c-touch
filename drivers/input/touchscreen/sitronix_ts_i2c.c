@@ -195,9 +195,9 @@ static void stx_report_touches(struct sitronix_ts *ts)
 {
 	struct i2c_client *client = ts->client;
 	struct input_dev  *input  = ts->input;
-	int buf_len;
-	u8 *buf;
+	u8 buf[SITRONIX_MAX_TOUCHES * STX_TOUCH_POINT_BYTES] = {};
 	u8 update;
+	int buf_len = ts->max_touches * ts->pixel_length;
 	int slot;
 	int ret;
 
@@ -205,15 +205,10 @@ static void stx_report_touches(struct sitronix_ts *ts)
 	if (ret < 0)
 		return;
 
-	buf_len = ts->max_touches * ts->pixel_length;
-	buf = kzalloc(buf_len, GFP_KERNEL);
-	if (!buf)
-		return;
-
 	if (update & STX_TOUCH_UPDATE_BIT) {
 		ret = stx_i2c_read(client, TOUCH_POINT0, buf, buf_len);
 		if (ret < 0)
-			goto out;
+			return;
 	}
 
 	for (slot = 0; slot < ts->max_touches; slot++) {
@@ -236,9 +231,6 @@ static void stx_report_touches(struct sitronix_ts *ts)
 
 	input_mt_report_pointer_emulation(input, false);
 	input_sync(input);
-
-out:
-	kfree(buf);
 }
 
 /* ======================================================================== */
