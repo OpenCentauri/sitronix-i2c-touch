@@ -372,6 +372,10 @@ static int sitronix_ts_probe(struct i2c_client *client)
 	input_set_capability(input, EV_ABS, ABS_X);
 	input_set_capability(input, EV_ABS, ABS_Y);
 	input_set_capability(input, EV_KEY, BTN_TOUCH);
+	// ponytail: match CC1 goodix node surface so consumers that probe
+	// ABS_MT_TRACKING_ID or expect INPUT_PROP_DIRECT work the same way
+	input_set_capability(input, EV_KEY, KEY_POWER);
+	__set_bit(INPUT_PROP_DIRECT, input->propbit);
 
 	input_set_abs_params(input, ABS_X,
 			     0, ts->resolution_x - 1, 0, 0);
@@ -383,6 +387,7 @@ static int sitronix_ts_probe(struct i2c_client *client)
 			     0, ts->resolution_y - 1, 0, 0);
 	input_set_abs_params(input, ABS_MT_PRESSURE,     0, 255, 0, 0);
 	input_set_abs_params(input, ABS_MT_TOUCH_MAJOR,  0, 255, 0, 0);
+	input_set_abs_params(input, ABS_MT_TRACKING_ID,  -1, ts->max_touches - 1, 0, 0);
 
 	ret = input_mt_init_slots(input, ts->max_touches, INPUT_MT_DIRECT);
 	if (ret) {
@@ -416,7 +421,27 @@ static int sitronix_ts_probe(struct i2c_client *client)
 
 static void sitronix_ts_remove(struct i2c_client *client)
 {
-	/* devm resources (IRQ, GPIOs, input dev) released automatically */
+	struct sitronix_ts *ts = i2c_get_clientdata(client);
+
+	/* ponytail: stop the IRQ thread from touching ts->input while we tear down.
+	 * Note: devm_input_allocate_device handles unregister+free for us, so do
+	 * NOT call input_unregister_device here (would double-unregister). */
+	if (client->irq)
+		disable_irq(client->irq);
+	if (ts) {
+		mutex_lock(&ts->lock);
+		ts->suspended = true;
+		mutex_unlock(&ts->lock);
+	}
+	if (client->irq)
+		synchronize_irq(client->irq);
+
+	/* ponytail: pull rst low so the IC releases the I2C bus. Without this,
+	 * a fast rmmod+insmod can hit -6/ENXIO because the IC is still driving SDA. */
+	if (ts && gpio_is_valid(ts->rst_gpio))
+		gpio_set_value(ts->rst_gpio, 0);
+
+	i2c_set_clientdata(client, NULL);
 	dev_info(&client->dev, "Sitronix touchscreen removed\n");
 }
 
