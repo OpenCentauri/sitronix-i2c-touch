@@ -423,23 +423,24 @@ static void sitronix_ts_remove(struct i2c_client *client)
 {
 	struct sitronix_ts *ts = i2c_get_clientdata(client);
 
-	/* ponytail: stop the IRQ thread from touching ts->input while we tear down.
-	 * Note: devm_input_allocate_device handles unregister+free for us, so do
-	 * NOT call input_unregister_device here (would double-unregister). */
-	if (client->irq)
+	// disable+sync IRQ so the thread can't touch ts->input; pull rst low
+	// so the IC releases the I2C bus (else next probe gets -6/ENXIO).
+	// devm handles input_unregister+free, gpio_free, and kfree for us.
+	if (client->irq) {
 		disable_irq(client->irq);
-	if (ts) {
-		mutex_lock(&ts->lock);
-		ts->suspended = true;
-		mutex_unlock(&ts->lock);
-	}
-	if (client->irq)
+		if (ts) {
+			mutex_lock(&ts->lock);
+			ts->suspended = true;
+			mutex_unlock(&ts->lock);
+		}
 		synchronize_irq(client->irq);
+	}
 
-	/* ponytail: pull rst low so the IC releases the I2C bus. Without this,
-	 * a fast rmmod+insmod can hit -6/ENXIO because the IC is still driving SDA. */
-	if (ts && gpio_is_valid(ts->rst_gpio))
+	if (ts && gpio_is_valid(ts->rst_gpio)) {
 		gpio_set_value(ts->rst_gpio, 0);
+		msleep(1);  // let any in-flight I2C byte settle before line idles
+		mutex_destroy(&ts->lock);
+	}
 
 	i2c_set_clientdata(client, NULL);
 	dev_info(&client->dev, "Sitronix touchscreen removed\n");
