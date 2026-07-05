@@ -2,10 +2,10 @@
 /*
  * drivers/input/touchscreen/sitronix_ts_i2c.c
  *
- * Sitronix I2C Touchscreen Controller Driver
+ * Sitronix ST1633i I2C Touchscreen Controller Driver
  * Target: Linux 6.18, out-of-tree .ko
  *
- * Compatible: "sitronix_ts", "sitronixts", "sitronix,st1232"
+ * Compatible: "sitronix_ts", "sitronixts", "sitronix,st1633"
  *
  * Derived from Sitronix vendor driver
  *   (C) 2011 Sitronix Technology Co., Ltd. <rudy_huang@sitronix.com.tw>
@@ -453,7 +453,6 @@ static void sitronix_ts_remove(struct i2c_client *client)
 static const struct of_device_id sitronix_ts_of_match[] = {
 	{ .compatible = "sitronix_ts" },
 	{ .compatible = "sitronixts" },
-	{ .compatible = "sitronix,st1232" },
 	{ .compatible = "sitronix,st1633" },
 	{ },
 };

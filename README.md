@@ -1,10 +1,9 @@
 # sitronix-i2c-touch
 
-Out-of-tree Linux kernel driver for Sitronix I²C touchscreen controllers,
-targeting **Linux 6.18** on **Allwinner R528** (and compatible ARMv7-A platforms).
-
-See [`notes-sitronix-ts55.md`](notes-sitronix-ts55.md) for full design rationale,
-DTS analysis, and driver selection notes.
+Out-of-tree Linux kernel driver for the **Sitronix ST1633i** capacitive
+touchscreen controller (I²C address `0x55`), used on the **Elegoo Centauri
+Carbon 2** printer. Implements multitouch input via the Linux input subsystem
+(`ABS_MT_*`, protocol B).
 
 ---
 
@@ -92,8 +91,7 @@ organized stock-device material:
 ```
 
 The driver binds to `compatible = "sitronixts"`.  It also accepts
-`"sitronix,st1232"` and `"sitronix,st1633"` if you want to align with
-mainline DT bindings later.
+`"sitronix,st1633"` if you want to align with mainline DT bindings later.
 
 ---
 
@@ -123,8 +121,8 @@ Output: `drivers/input/touchscreen/sitronix_ts_i2c.ko`
 ### Load
 
 ```bash
-# If mainline st1232_ts is loaded, unload it first:
-rmmod st1232_ts 2>/dev/null || true
+# If mainline st1633_ts is loaded, unload it first:
+rmmod st1633_ts 2>/dev/null || true
 
 insmod drivers/input/touchscreen/sitronix_ts_i2c.ko
 ```
@@ -184,8 +182,8 @@ bytes 2+  : per-touch, pixel_length bytes each
 
 ## TODO / next steps
 
-- [ ] Determine exact Sitronix IC variant on your panel (check `dmesg` for
-      `chip_id`, `protocol_type`, `resolution` log lines after `insmod`).
+- [x] Determine exact Sitronix IC variant on your panel: **ST1633i**
+      (`chip_id=132` / `0x84`, `max_touches=5`).
 - [ ] If `resolution_x/y` come back 0, set them explicitly in DTS or via
       `touchscreen-size-x` / `touchscreen-size-y` properties.
 - [ ] Add `touchscreen-inverted-x`, `touchscreen-inverted-y` DTS support
@@ -194,7 +192,7 @@ bytes 2+  : per-touch, pixel_length bytes each
       for panel reflashing — see `refs/sitronix_i2c_touch.c` for the
       full ISP/ioctl implementation to port.
 - [ ] Consider upstreaming to `drivers/input/touchscreen/` once validated,
-      using `sitronix,st1232`/`st1633` compatible strings for mainline.
+      using the `sitronix,st1633` compatible string for mainline.
 
 ---
 
